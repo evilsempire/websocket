@@ -133,8 +133,15 @@
                     ws.onerror = ws.onopen = ws.onclose = null;
                     ws.close();
                 }
-                const {  host } = window.location;
-                ws = new WebSocket(`ws://${host}`);
+                const { protocol, host, pathname } = window.location;
+                console.log(protocol);
+                console.log(host);
+                console.log(pathname);
+                let webServer = "ws";
+                if(protocol == "https:") webServer = "wss"
+                
+
+                ws = new WebSocket(`${webServer}://${host}`);
                 ws.onopen = () => {
                     console.log('Connection opened!');
                 }
