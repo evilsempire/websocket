@@ -1,9 +1,11 @@
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
+const path = require('path');
+const app = express();
 
-const port = 6969;
-const server = http.createServer(express);
+const port = process.env.PORT || 6969;
+const server = http.createServer(app);
 const wss = new WebSocket.Server({ server })
 
 wss.on('connection', function connection(ws) {
@@ -14,7 +16,11 @@ wss.on('connection', function connection(ws) {
       }
     })
   })
-})
+});
+
+app.get( '/', ( req, res ) => {
+    res.sendFile( path.resolve( __dirname, 'index.html' ) );
+} );
 
 server.listen(port, function() {
   console.log(`Server is listening on ${port}!`)
