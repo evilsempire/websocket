@@ -133,8 +133,8 @@
                     ws.onerror = ws.onopen = ws.onclose = null;
                     ws.close();
                 }
-
-                ws = new WebSocket('ws://localhost:6969');
+                const {  host } = window.location;
+                ws = new WebSocket(`ws://${host}`);
                 ws.onopen = () => {
                     console.log('Connection opened!');
                 }
