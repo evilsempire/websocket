@@ -1,0 +1,201 @@
+<html>
+
+<head>
+    <style>
+        .leftside {
+            float: left;
+            width: 90%;
+            text-align: left;
+            padding: 0px 10px;
+            background: #f7b5c1;
+            border-radius: 1px;
+            margin: 10px;
+        }
+
+        .leftside>span {
+            float: left;
+            padding: 5px;
+        }
+
+        .pull-left {
+            float: left;
+        }
+
+        .pull-right{
+            float: right;
+        }
+
+        .rightside {
+            float: right;
+            width: 90%;
+            text-align: right;
+            padding: 0px 10px;
+            background: #c2dec2;
+            border-radius: 1px;
+            margin: 10px;
+        }
+
+        .rightside>span {
+            padding: 5px;
+            float: right;
+        }
+
+        .tri-right.btm-right:after {
+            content: ' ';
+            position: absolute;
+            width: 0;
+            height: 0;
+            left: auto;
+            right: 0px;
+            bottom: -10px;
+            border: 10px solid;
+            border-color: #c2dec2 #c2dec2 transparent transparent;
+
+        }
+
+        .green-bg {
+            background-color: #c2dec2;
+        }
+
+        .talk-bubble {
+            margin: 10px;
+            display: inline-block;
+            position: relative;
+            /* width: 200px;
+            height: auto; */
+
+        }
+
+        .red-bg {
+            background-color: #f7b5c1;
+        }
+
+        .tri-right.btm-left:after {
+            content: ' ';
+            position: absolute;
+            width: 0;
+            height: 0;
+            left: 0px;
+            right: auto;
+            top: -10px;
+            bottom: auto;
+            border: 10px solid;
+            border-color: transparent transparent transparent #f7b5c1;
+        }
+    </style>
+</head>
+
+<body>
+    
+    <div id="username">
+        <h1>Real Time Messaging</h1>
+    </div>
+    <div id="namewindow">
+        <input type="text" id="name" placeholder="Type your name here and press Enter"
+    style="display: block; width: 100%; margin-bottom: 10px; padding: 10px;" />
+
+    </div>
+    <div id="chatwindow" style="display: none;">
+        <div id="messages" style="height: 400px; overflow: scroll"></div>
+    <input type="text" id="messageBox" placeholder="Type your message here"
+        style="display: block; width: 100%; margin-bottom: 10px; padding: 10px;" />
+    <button id="send" title="Send Message!" style="width: 100%; height: 30px;">Send Message</button>
+    </div>
+
+    <script>
+        (function () {
+            const sendBtn = document.querySelector('#send');
+            const messages = document.querySelector('#messages');
+            const messageBox = document.querySelector('#messageBox');
+            const nameBox =  document.querySelector('#name');
+            let ws;
+            let userID = Date.now();
+            let username = "Javascript";
+            console.log(userID);
+            function showMessage(data) {
+                console.log(data);
+                const refined = JSON.parse(data);
+                const className = refined.id !== userID ? "leftside red-bg btm-left" : "rightside green-bg btm-right";
+                // messages.innerHTML += `<div class="${className}">${refined.message}</div>`;
+                const userClass = refined.id !== userID ? "pull-left" : "pull-right";
+                messages.innerHTML += `<div>
+                    <span class="${userClass}" style="padding:0 10px;">${refined.name}</span>
+                    <pre class="talk-bubble tri-right  ${className}">
+                                            <span>${refined.message}</span>
+                                      </pre>
+                    </div>`;
+                messages.scrollTop = messages.scrollHeight;
+                messageBox.value = '';
+            }
+
+            function init() {
+                if (ws) {
+                    ws.onerror = ws.onopen = ws.onclose = null;
+                    ws.close();
+                }
+
+                ws = new WebSocket('ws://localhost:6969');
+                ws.onopen = () => {
+                    console.log('Connection opened!');
+                }
+                ws.onmessage = ({ data }) => showMessage(data);
+                ws.onclose = function () {
+                    ws = null;
+                }
+            }
+
+            sendBtn.onclick = function () {
+                if (!ws) {
+                    showMessage("No WebSocket connection :(");
+                    return;
+                }
+                const messageData = JSON.stringify({
+                    message: messageBox.value,
+                    id: userID
+                });
+                ws.send(messageData);
+                showMessage(messageData);
+            }
+
+            messageBox.addEventListener("keyup", function (event) {
+                // Number 13 is the "Enter" key on the keyboard
+                if (event.keyCode === 13) {
+                    // Cancel the default action, if needed
+                    event.preventDefault();
+                    if (!ws) {
+                        showMessage("No WebSocket connection :(");
+                        return;
+                    }
+                    const messageData = JSON.stringify({
+                        message: messageBox.value,
+                        id: userID,
+                        name: username
+                    });
+                    ws.send(messageData);
+                    showMessage(messageData);
+                }
+            });
+
+            nameBox.addEventListener("keyup", function (event) {
+                // Number 13 is the "Enter" key on the keyboard
+                if (event.keyCode === 13) {
+                    // Cancel the default action, if needed
+                    event.preventDefault();
+                    //Set the name
+                    username = document.getElementById('name').value;
+                    
+                    document.getElementById('name').style.display = "none"
+                    document.getElementById('chatwindow').style.display = "block";
+
+                    document.getElementById('username').innerHTML = `<h1>Hello ${username}</h1>`;
+
+                }
+            });
+
+
+            init();
+        })();
+    </script>
+</body>
+
+</html>
